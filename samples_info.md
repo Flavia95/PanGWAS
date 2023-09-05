@@ -22,8 +22,8 @@ Informations here: https://www.dropbox.com/scl/fi/sm1afmyyqb7libqnf7fni/Long_rea
 4) PacBio data
 
 ```
-mkdir -p /lizardfs/guarracino/mouse/data
-cd /lizardfs/guarracino/mouse/data
+mkdir -p /lizardfs/guarracino/mouse/data/hifi
+cd /lizardfs/guarracino/mouse/data/hifi
 wget -c https://palmerlab.s3.sdsc.edu/BXD1_40_HiFi/m84137_230816_004807_s3.hifi_reads.bc2021.bam
 wget -c https://palmerlab.s3.sdsc.edu/BXD1_40_HiFi/m84137_230818_232354_s2.hifi_reads.bc2036.bam
 wget -c https://palmerlab.s3.sdsc.edu/BXD1_40_HiFi/README
@@ -32,4 +32,14 @@ wget -c https://palmerlab.s3.sdsc.edu/BXD1_40_HiFi/README
 #BXD1         m84137_230816_004807_s3.hifi_reads.bc2021  11.9
 #BXD40        m84137_230818_232354_s2.hifi_reads.bc2036  20.9
 #Sequenced with PacBio Revio
+```
+
+5) Assembly with verkko
+
+```
+mkdir -p /lizardfs/guarracino/mouse/assemblies
+cd /lizardfs/guarracino/mouse/assemblies
+
+conda activate /lizardfs/guarracino/condatools/verkko/1.4.1/
+sbatch -c 4 -p headnode --job-name verkko-BXD1 --wrap "cd /scratch; \time -v verkko --local-cpus 4 -d BXD1.asm --hifi /lizardfs/guarracino/mouse/data/hifi/m84137_230816_004807_s3.hifi_reads.bc2021.fq.gz --nano /lizardfs/flaviav/mouse_ont/fastq/BXD1.fastq.gz"
 ```
