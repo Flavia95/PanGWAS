@@ -34,12 +34,28 @@ wget -c https://palmerlab.s3.sdsc.edu/BXD1_40_HiFi/README
 #Sequenced with PacBio Revio
 ```
 
-5) Assembly with verkko
+5a) Assembly with verkko
 
 ```
-mkdir -p /lizardfs/guarracino/mouse/assemblies
-cd /lizardfs/guarracino/mouse/assemblies
+mkdir -p /lizardfs/guarracino/mouse/assemblies/verkko
+cd /lizardfs/guarracino/mouse/assemblies/verkko
 
 conda activate /lizardfs/guarracino/condatools/verkko/1.4.1/
-sbatch -c 4 -p headnode --job-name verkko-BXD1 --wrap "cd /scratch; \time -v verkko --local-cpus 4 -d BXD1.asm --hifi /lizardfs/guarracino/mouse/data/hifi/m84137_230816_004807_s3.hifi_reads.bc2021.fq.gz --nano /lizardfs/flaviav/mouse_ont/fastq/BXD1.fastq.gz"
+sbatch -c 48 -p workers --job-name BXD1-verkko --wrap "cd /scratch; \time -v verkko --local-cpus 4 -d BXD1.asm --hifi /lizardfs/guarracino/mouse/data/hifi/m84137_230816_004807_s3.hifi_reads.bc2021.fq.gz --nano /lizardfs/flaviav/mouse_ont/fastq/BXD1.fastq.gz"
+sbatch -c 48 -p workers --job-name BXD40-verkko --wrap "cd /scratch; \time -v verkko --local-cpus 48 -d BXD40.asm --hifi /lizardfs/guarracino/mouse/data/hifi/m84137_230818_232354_s2.hifi_reads.bc2036.fq.gz --nano /lizardfs/flaviav/mouse_ont/fastq/BXD40.fastq.gz"
+```
+
+5b) Assembly with hifiasm
+
+```
+mkdir -p /lizardfs/guarracino/mouse/assemblies/hifiasm
+cd /lizardfs/guarracino/mouse/assemblies/hifiasm
+
+HIFIASM=/home/guarracino/tools/hifiasm/hifiasm-94a284b4309837417dd9951a5f72a13d513d826e
+
+mkdir -p /lizardfs/guarracino/mouse/assemblies/hifiasm/BXD1
+sbatch -c 48 -p workers -p workers --job-name BXD1-hifiasm --wrap "hostname; cd /scratch; \time -v $HIFIASM -o BXD1.asm -t 48 --ul /lizardfs/flaviav/mouse_ont/fastq/BXD1.fastq.gz /lizardfs/guarracino/mouse/data/hifi/m84137_230816_004807_s3.hifi_reads.bc2021.fq.gz; mv BXD1.asm* /lizardfs/guarracino/mouse/assemblies/hifiasm/BXD1"
+
+mkdir -p /lizardfs/guarracino/mouse/assemblies/hifiasm/BXD40
+sbatch -c 48 -p workers -p workers --job-name BXD40-hifiasm --wrap "hostname; cd /scratch; \time -v $HIFIASM -o BXD40.asm -t 48 --ul /lizardfs/flaviav/mouse_ont/fastq/BXD40.fastq.gz /lizardfs/guarracino/mouse/data/hifi/m84137_230818_232354_s2.hifi_reads.bc2036.fq.gz --nano /lizardfs/flaviav/mouse_ont/fastq/BXD40.fastq.gz; mv BXD40.asm* /lizardfs/guarracino/mouse/assemblies/hifiasm/BXD40"
 ```
