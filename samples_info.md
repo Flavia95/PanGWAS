@@ -59,3 +59,15 @@ sbatch -c 48 -p workers -p workers --job-name BXD1-hifiasm --wrap "hostname; cd 
 mkdir -p /lizardfs/guarracino/mouse/assemblies/hifiasm/BXD40
 sbatch -c 48 -p workers -p workers --job-name BXD40-hifiasm --wrap "hostname; cd /scratch; \time -v $HIFIASM -o BXD40.asm -t 48 --ul /lizardfs/flaviav/mouse_ont/fastq/BXD40.fastq.gz /lizardfs/guarracino/mouse/data/hifi/m84137_230818_232354_s2.hifi_reads.bc2036.fq.gz --nano /lizardfs/flaviav/mouse_ont/fastq/BXD40.fastq.gz; mv BXD40.asm* /lizardfs/guarracino/mouse/assemblies/hifiasm/BXD40"
 ```
+6) Assembly and correction with wtdbg2 on ONT data
+```
+input_dir=/lizardfs/flaviav/mouse_ont/fastq/
+wtdg_dir=/lizardfs/flaviav/tools/conda/wtdbg/bin/                                                                
+output_dir=/lizardfs/flaviav/mouse_ont/assembly/
+
+$wtdg_dir/wtdbg2 -x ont -g 2.5g -i $input_dir/BXD1.fastq.gz -t 30 -fo $output_dir/mouse_assembly.ont.wtdbg2.asm1
+$wtdg_dir/wtpoa-cns -t 30 -i $output_dir/mouse_assembly.ont.wtdbg2.asm1.ctg.lay.gz -fo $output_dir/mouse_assembly.ont.wtdbg2.asm1.raw.fa
+minimap2 -t30 -ax map-ont -r2k $output_dir/mouse_assembly.ont.wtdbg2.asm1.raw.fa $input_dir/BXD1.fastq.gz \
+        | samtools sort -@30 -o $output_dir/mouse_reads.asm1.ont.bam && samtools view -F0x900 $output_dir/mouse_reads.asm1.ont.bam \
+$wtdg_dir/wtpoa-cns -t 30 -d $output_dir/mouse_assembly.ont.wtdbg2.asm1.raw.fa -i - -fo $output_dir/mouse_reads.ont.wtdbg2.asm1.cns.fa
+```
