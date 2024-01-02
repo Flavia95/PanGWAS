@@ -16,6 +16,8 @@ Data used:
 
 ### 2) Stats on the assembly:
 
+Stats results: *flaviav@octopus02:/lizardfs/flaviav/mouse/assembly_D/stats/*
+
 - Quast:
 
 ```
@@ -31,3 +33,7 @@ mkdir -p busco/databases
 /lizardfs/flaviav/tools/conda/compleasm/bin/compleasm download -L /lizardfs/flaviav/mouse/assembly_D/busco/databases mammalia
 sbatch -p workers -x octopus07,octopus10 -c 48 --wrap "hostname; cd /scratch; /lizardfs/flaviav/tools/conda/compleasm/bin/compleasm run -a /lizardfs/flaviav/mouse/assembly_D/DBA2J.asm.hic.p_ctg.fa -o /lizardfs/flaviav/mouse/assembly_D/DBA2J -t 48 -l mammalia -L /lizardfs/flaviav/mouse/assembly_D/busco/databases; mv /lizardfs/flaviav/mouse/assembly_D/DBA2J/summary.txt /lizardfs/flaviav/mouse/assembly_D/DBA2J/summary.mammalia.DBA2J.txt"
 ```
+![busco_DBA2J](https://github.com/Flavia95/BXD_ONT-PacBio/assets/52487106/2f15ddc7-dea1-40f5-9265-728e5245a5f5)
+
+
+
