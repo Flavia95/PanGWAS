@@ -6,9 +6,13 @@ sbatch -p workers --job-name filterasvsref -c 48 --wrap "hostname; cd /scratch; 
 ```
 ### 1. Mapping linked-read vs D+B assembly
 ### 2. Inject the BAM (alignment) file into the graph
-### 3. Generated a matrix of coverage using GAFpack tool
+### 3. Generated a matrix of coverage using GAFpack tool, merge all results in a unique format
 ```
 /lizardfs/flaviav/mouse/assembly_D/GWAS/pre_gwas.sh
+# Get the header from the first file of files 
+head -n 1 4512-JFI-0346_pack.tsv > merged20.tsv
+# Append the content from the second file (excluding the header)
+for file in *_pack.tsv; do tail -n +2 "$file"; done >> merged20.tsv
 ```
 ### 4. Preparing files for GEMMA
 
