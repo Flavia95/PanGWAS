@@ -15,6 +15,9 @@ head -n 1 4512-JFI-0346_pack.tsv > merged20.tsv
 for file in *_pack.tsv; do tail -n +2 "$file"; done >> merged20.tsv
 ```
 ### 4. Preparing files for GEMMA
+```
+python gfapacktogenotype.py out_gfainj/merged20.tsv in_gemma/genonodes.tsv
+```
 
 - Matrix coverage from the pangenome for two individuals: 
 
@@ -40,8 +43,16 @@ Then I converted above tables in the format that GEMMA likes, for each node (pos
 
 | Nodes | Allele1 | Allele2 |Ind1|Ind2|
 | -------- | -------- | -------- |-------|-------|
-| node.1     | X    | Y   |   1 |   0   |
-| node.2   | X    | Y    |   0 |  0   |
+| node.1     | A    | A   |   1 |   0   |
+| node.2   | A    | A    |   0 |  0   |
+
+
+Nodes in the pangenome graph: 
+23,363,074
+Absence (o) in the genotypes of nodes                                                   
+23,363,075                                                                                                                             
+Presence (1) in the genotypes of nodes                                                                                            
+19,104,602                                                               
 
 
 #### GEMMA wants as required inputs a genotype matrix and a phenotype file:
