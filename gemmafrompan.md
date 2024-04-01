@@ -89,6 +89,15 @@ Optional files:
 | 1,2   | 0.3    | 
 
 ### 5. Run GEMMA on 20 samples
+- Check the location of nodes with low p-value.
 
+- Using odgi position: check the location of each node, on which contigs it is
+```
+echo "#target.graph.pos target.path.pos dist.to.path strand.vs.ref" > results.txt; cat nodespvaluesignig.txt | { while read line; do output=$($ODGI position -i *.final.og -g "$line"); echo "$output" | sed '1d' >> results.txt; done; }
+```
+- Using mashmap to map the assembly vs the mm10 reference:
 
-  
+```
+/lizardfs/flaviav/tools/conda/mashmasp/bin/mashmap -r /lizardfs/flaviav/mouse/148strains/UCSC_mm10.fa -q /lizardfs/flaviav/mouse/assembly_D/3_hifiasm_hifi/DBA2J.asm.onlyhifi.rename.fa -t 35 -o mashmap/asvsmm10
+``` 
+- Write a script to see where the contigs are, on which chromosome, using odgi position and mashmap output.
