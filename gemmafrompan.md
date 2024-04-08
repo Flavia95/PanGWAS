@@ -97,6 +97,11 @@ echo "#target.graph.pos target.path.pos dist.to.path strand.vs.ref" > results.tx
 ```
 - Using mashmap to map the assembly vs the mm10 reference:
 
+  while IFS=, read -r col1 col2 third_col rest; do     third_col=$(echo "$third_col" | sed 's/+//g');     echo "$col1 $third_col"; done < results.txt > poshighvalue.txt
+
+  cut -f1,6 asvsmm10
+  awk 'NR==FNR{a[$2];next} $1 in a' poshighvalue.txt asvsmm10_only > final_comparison.txt
+
 ```
 /lizardfs/flaviav/tools/conda/mashmasp/bin/mashmap -r /lizardfs/flaviav/mouse/148strains/UCSC_mm10.fa -q /lizardfs/flaviav/mouse/assembly_D/3_hifiasm_hifi/DBA2J.asm.onlyhifi.rename.fa -t 35 -o mashmap/asvsmm10
 ``` 
