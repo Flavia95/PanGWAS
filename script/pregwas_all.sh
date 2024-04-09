@@ -1,4 +1,5 @@
 #!/bin/bash
+##Run the pipeline before run GEMMA on 160 linked-read folders, to run the job use:  sbatch -p workers --job-name extractlinked -c 1 --wrap "hostname; cd /scratch; /lizardfs/flaviav/mouse/assembly_D/GWAS/pregwas_all.sh"
 
 # Set the paths
 BWA_PATH="/lizardfs/flaviav/tools/bwa-0.7.17/bwa"
