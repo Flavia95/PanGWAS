@@ -106,3 +106,8 @@ echo "#target.graph.pos target.path.pos dist.to.path strand.vs.ref" > results.tx
 /lizardfs/flaviav/tools/conda/mashmasp/bin/mashmap -r /lizardfs/flaviav/mouse/148strains/UCSC_mm10.fa -q /lizardfs/flaviav/mouse/assembly_D/3_hifiasm_hifi/DBA2J.asm.onlyhifi.rename.fa -t 35 -o mashmap/asvsmm10
 ``` 
 - Write a script to see where the contigs are, on which chromosome, using odgi position and mashmap output.
+- 
+Using the reference:
+/lizardfs/guarracino/git/odgi/bin/odgi position -t 40 -i /scratch/*.final.og -R /lizardfs/flaviav/mouse/assembly_D/GWAS/pggb_out_ref/refpos.txt -G /lizardfs/flaviav/mouse/assembly_D/GWAS/pggb_out_ref/nodespvaluesignig.txt > /scratch/results1.txt
+cat results1.txt | cut -f 2 | cut -f 1 -d ',' | sort | uniq -c | sort -k 1,1nr | less -S
+cat results1.txt | grep 'chr1,'
