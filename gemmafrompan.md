@@ -12,8 +12,12 @@ sbatch -p workers --job-name filterasvsref -c 48 --wrap "hostname; cd /scratch; 
 # Get the header from the first file of files 
 head -n 1 4512-JFI-0346_pack.tsv > merged20.tsv
 # Append the content from the second file (excluding the header)
-for file in *_pack.tsv; do tail -n +2 "$file"; done >> merged20.tsv
+for file in *_pack.tsv.gz; do   zcat "$file" | tail -n +2 >> matrcov153.tsv; done
 ```
+
+#### 3b. Debug matrix of coverage
+
+
 ### 4. Preparing files for GEMMA
 ```
 python gfapacktogenotype.py out_gfainj/merged20.tsv in_gemma/genonodes.tsv
