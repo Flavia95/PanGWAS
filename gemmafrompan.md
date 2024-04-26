@@ -1,117 +1,120 @@
-# GEMMA from pangenome
+# GEMMA from pangenome graph using BXD family of mouse
 
-### 0. Build the pangenome graph whole-genome with pggb
+### 0. Extracted all linked-read folders'
 ```
-sbatch -p workers --job-name filterasvsref -c 48 --wrap "hostname; cd /scratch; /home/guarracino/tools/pggb/pggb-a814fa58b370eddd5a099053f39d792bceab9258 -i /lizardfs/flaviav/mouse/assembly_D/8_pggb/D_C.fa.gz -n 2  -o /lizardfs/flaviav/mouse/assembly_D/8_pggb/parts/pggb_out"
+/lizardfs/flaviav/mouse/assembly_D/GWAS/extract.sh
 ```
-### 1. Mapping linked-read vs D+B assembly
-### 2. Inject the BAM (alignment) file into the graph
-### 3. Generated a matrix of coverage using GAFpack tool, merge all results in a unique format
-```
-/lizardfs/flaviav/mouse/assembly_D/GWAS/pre_gwas.sh
-# Get the header from the first file of files 
-head -n 1 4512-JFI-0346_pack.tsv > merged20.tsv
-# Append the content from the second file (excluding the header)
-for file in *_pack.tsv.gz; do   zcat "$file" | tail -n +2 >> matrcov153.tsv; done
-```
-
-#### 3b. Debug matrix of coverage
-
-
-### 4. Preparing files for GEMMA
-```
-python gfapacktogenotype.py out_gfainj/merged20.tsv in_gemma/genonodes.tsv
-```
-
-- Matrix coverage from the pangenome for two individuals: 
-
-| #Sample   | node.1    | node.2|
-| -------- | -------- | -------- |
-|Ind1|100|0|
-
-| #Sample    | node.1    | node.2|
-| -------- | -------- | -------- |
-|Ind2|40|0|
-
-To starting, I put a threshold, if the coverage is >50 put 1 as genotype otherwise put 0. This is the result:
-
-| #Sample    | node.1    | node.2|
-| -------- | -------- | -------- |
-|Ind1|1|0|
-
-| #Sample    | node.1    | node.2|
-| -------- | -------- | -------- |
-|Ind2|0|0|
-
-Then I converted above tables in the format that GEMMA likes, for each node (position), there is the genotype for each individual:
-
-| Nodes | Allele1 | Allele2 |Ind1|Ind2|
-| -------- | -------- | -------- |-------|-------|
-| node.1     | A    | A   |   1 |   0   |
-| node.2   | A    | A    |   0 |  0   |
-
-
-Nodes in the pangenome graph: 
-23,363,074
-Absence (o) in the genotypes of nodes                                                   
-23,363,075                                                                                                                             
-Presence (1) in the genotypes of nodes                                                                                            
-19,104,602                                                               
-
-
-#### GEMMA wants as required inputs a genotype matrix and a phenotype file:
-
-- Genotype matrix, GEMMA ignores allele types. Missing genotypes are as NA.
-
-| RSID(position) | Allele1 | Allele2 |Ind1|Ind2|
-| -------- | -------- | -------- |-------|-------|
-| rs3144l     | X    | Y   |   1 |   0   |
-| rs5173   | X    | Y    |   0 |  0   |
-
-- Phenotype, each line is a number indicating the phenotype file value for each individual, same order of the individuals as above. 1.2 is for the Ind1 and NA for the Ind2.
-
-| Values | 
-| -------- | 
-| 1.2     | 
-| NA   | 
-
-- Same format for the pangenome graph analyses
-
-Optional files:
-- SNP annotation file
-  
-| RSID | Position| Chr|
-| -------- | -------- |--------|
-| rs3144l     | 12000    | 1   | 
-| rs5173   | 13000    | 1   |   
-
-- Covariates file
-
-| Individuals | Position|
-| -------- | -------- |
-| 1,1     | -1.5    | 
-| 1,2   | 0.3    | 
-
-### 5. Run GEMMA on 20 samples
-- Check the location of nodes with low p-value.
-
-- Using odgi position: check the location of each node, on which contigs it is
-```
-echo "#target.graph.pos target.path.pos dist.to.path strand.vs.ref" > results.txt; cat nodespvaluesignig.txt | { while read line; do output=$($ODGI position -i *.final.og -g "$line"); echo "$output" | sed '1d' >> results.txt; done; }
-```
-- Using mashmap to map the assembly vs the mm10 reference:
-
-  while IFS=, read -r col1 col2 third_col rest; do     third_col=$(echo "$third_col" | sed 's/+//g');     echo "$col1 $third_col"; done < results.txt > poshighvalue.txt
-
-  cut -f1,6 asvsmm10
-  awk 'NR==FNR{a[$2];next} $1 in a' poshighvalue.txt asvsmm10_only > final_comparison.txt
+### 0. Build the pangenome graph whole-genome with pggb (using the near-T2T of C57BL/6J and DBA/2J)
 
 ```
-/lizardfs/flaviav/tools/conda/mashmasp/bin/mashmap -r /lizardfs/flaviav/mouse/148strains/UCSC_mm10.fa -q /lizardfs/flaviav/mouse/assembly_D/3_hifiasm_hifi/DBA2J.asm.onlyhifi.rename.fa -t 35 -o mashmap/asvsmm10
-``` 
-- Write a script to see where the contigs are, on which chromosome, using odgi position and mashmap output.
-- 
-Using the reference:
-/lizardfs/guarracino/git/odgi/bin/odgi position -t 40 -i /scratch/*.final.og -R /lizardfs/flaviav/mouse/assembly_D/GWAS/pggb_out_ref/refpos.txt -G /lizardfs/flaviav/mouse/assembly_D/GWAS/pggb_out_ref/nodespvaluesignig.txt > /scratch/results1.txt
-cat results1.txt | cut -f 2 | cut -f 1 -d ',' | sort | uniq -c | sort -k 1,1nr | less -S
-cat results1.txt | grep 'chr1,'
+sbatch -p workers --job-name filterasvsref -c 48 --wrap "hostname; cd /scratch; pggb-a814fa58b370eddd5a099053f39d792bceab9258 -i /lizardfs/flaviav/mouse/assembly_D/8_pggb/D_C_mm10.fa.gz -n 2 -o /lizardfs/flaviav/mouse/assembly_D/8_pggb/parts/pggb_out"
+```
+
+### 1. Mapping linked-read vs C57BL/6J + DBA/2J assembly
+### 2. Inject the BAM (alignment) file from the above step into the pangenome graph
+### 3. Generated a matrix of coverage
+
+```
+sbatch -p workers --job-name pregemma -c 1 --wrap "hostname; cd /scratch; pregemma_all.sh"
+```
+### 4.  Merge all coverage matrices in a unique file (153 samples)
+
+Merge the file follow the same order of the genomic standard approach
+```
+# Get the header from the first file
+head -n 1 4512-JFI-0346_pack.tsv > matrcov153.tsv
+file_list="samples.txt"
+# Read the file names from the file_list.txt file into an array
+mapfile -t ordered_files < "$file_list"
+
+# Append the content from the files (excluding the header)
+for file in "${ordered_files[@]}"; do
+    if [ -f "${file}_pack.tsv.gz" ]; then
+        zcat "${file}_pack.tsv.gz" | tail -n +2 >> matrcov153.tsv
+    fi
+done
+```
+Reheader the file with the same notation and order of the genomic standard file
+```
+input_file="matrcov153.tsv"
+new_names_file="new_samples.txt"
+output_file="matrcov153_ren.txt"
+head -n 1 "$input_file" > "$output_file"
+readarray -t new_names < "$new_names_file"
+tail -n +2 "$input_file" | cut -f2- | paste -d $'\t' <(printf '%s\n' "${new_names[@]}") - >> "$output_file"
+```
+#### 4a. Adjust the genomic standard vcf file (we will use this as positive controls)
+- Exclude the samples in which we are not interesting
+- Rename the samples
+
+#### 4b. Debug the coverage matrix
+This is useful to have a grapical rapresentation of the coverage values
+
+`sbatch --nodes=1 --qos=campus --ntasks-per-node=1 --time=24:00:00 --partition=campus-sigma -e debugcov.e%j -o debugcov.o%j --mem=64G --wrap 'cd /lustre/haven/user/fvillan1; /sw/cs400_centos7.3_acfsoftware/r/3.4.0/centos7.3_intel17.2.174/bin/Rscript /nics/b/home/fvillan1/GWAS/debugcov.R'`
+
+### 5. Generating GEMMA's file
+
+#### 5b. Generating GEMMA's files with different approaches. 
+
+Steps to generating genotypes of nodes.
+
+- Generating coverage matrix without filters:
+ `python3 gfapacktogenotype.py merged153.tsv genotypesofnodes.txt`
+
+- Generating coverage matrix with coverage filters. This update script give as final results the matrix of genotypes but in the same time it checked also the coverages' values. If these values are bigger than a threshold and these appear in more than 5 % of the samples, we decided to check where there are and removed these from the final matrix of genotypes.
+`python3 gfapacktogenotype_update.py merged153.tsv genotypesofnodes.txt samples_removed_1000.txt --threshold 0.05 --remove_value 1000`
+
+- Generating coverage matrix with normalization filters:
+I normalize the coverage values per sample, I divided each value in a row by the sum of values in that row. Then I had values between 0 and 1.
+ `python3 gfapacktogenotype.py merged153.tsv genotypesofnodes_norm.txt`
+
+#### 5c. Generating GEMMA's files with different approaches. 
+
+Using GN's file, put the phenotypes in the same order of the genotype file samples.
+
+```
+pheno_gemma.txt
+```
+
+#### 5d. Create a map file from the graph.This can help us to take tracks about the marker's position along the genome.
+This is an experimental way, it will give to us all the possibile nodes and the localization on the chromosome. Can happens that different nodes are localized on different chromosomes. In addition we are using in that case the reference genome.
+
+```
+odgi-all-positions position -i graph.og --all-positions -R file_with_targets.txt
+```
+
+c. In addition we can create an annotation file, start-end bubbles with vg and cut only start and end. This can be use when we will not use the odgi position results anymore.
+
+```
+vg stats -R *final.vg > /home/flavia/work/DBA2J/GWAS/trait_154-155/start_end_only_wholegenome.tsv 
+```
+
+Information about phenotype:
+
+https://genenetwork.org/show_trait?trait_id=10358973&dataset=UTHSC_SPL_RMAEx_1210
+
+
+### 6. Run GEMMA-wrapper
+
+Gemma guide: https://www.xzlab.org/software/GEMMAmanual.pdf 
+
+
+Gemma-wrapper allow running GEMMA with the LOCO option, it is useful when there is potential confounding due to population structure or relatedness. In the command line we specified also -lmm 9 that tells GEMMA to use the LOCO approach, where it performs association tests by leaving out one chromosome at a time from the analysis. This means that when testing for associations on a particular chromosome, the markers on that chromosome are not used to estimate the genetic relatedness matrix other analyses.
+
+a. Kinship matrix, to obtain a Relatedness Matrix
+b. Associations, run univariate LMM. Non-variant sites i.e. start/end of the bubbles are removed by GEMMA
+
+```
+gemma-wrapper --json --loco 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,X,Y,M -- -debug -g BXD.8_geno.txt -p pheno.txt -a BXD.8_snps.txt -gk > BXD_K_088C6Q.json
+gemma-wrapper --json --loco --input BXD_K_088C6Q.json -- -debug -g BXD.8_geno.txt -p pheno.txt -a BXD.8_snps.txt -lmm 9 -maf 0.05 > BXD_GWA_3NMBLW.json
+```
+c. Example's output
+
+```
+chr     rs      ps      n_miss  allele1 allele0 af      beta    se      logl_H1 l_remle p_wald
+-9      node.1  -9      0       A       A       0.325   -9.210579e-01   2.292064e+00    -4.395814e+01   8.026216e+00    6.925283e-01....
+```
+
+### 6. Downstream analyses, qqplot and manhattan plot
+
+Add script...
